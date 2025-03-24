@@ -288,19 +288,49 @@ OSSにより頒布されているBIツールであり、Apacheによるプロジ
 - RDBをはじめとした外部のデータソースからデータを取り込める。
 #### 2. サービスの特徴
 - Apache License2.0のもとで頒布されているため、利用に費用がかからずライセンスリスクも少ない。
+- Pythonで実装されているため、修正できる人が多い
 - Dockerコンテナ内で動作する。
 #### 3. 価格
 - システムにライセンス料は不要。
 - Dockerコンテナを動作させるためのマシンは別途必要。
-- AWSマーケットプレイス上にはサービスが存在する。
+- AWSマーケットプレイス上に有料でEC2インスタンス上での運用をサポートするサービスが存在
 #### 4. 技術的に優れていること
 - OLAPと呼ばれる内部データの保持方法を採用しており、これによって高速でデータをクエリ出来る。
+- Dockerコンテナで配布されているので、環境を問わず実行できる。
+- 様々なサービスに繋ぐことができるコネクタが開発されている。
+  - 例
+    - Amazon Athena
+    - Snowflake
+    - Google Sheets
+    - Elasticsearch
+    - Apache Spark SQL
+  - [このほか30種類以上のデータソースを利用可能](https://superset.apache.org/docs/configuration/databases/#supported-databases-and-dependencies)
+- CSVをデータソースとしてデフォルトで活用可能
+- 外部のマップサービスとの連携で、位置情報を表現するデータ可視化に優れる。
+- ダッシュボードにiframeを配置可能
 #### 5. 制約事項
+- 企業のサービスではないため、サポート体制は弱い
+- 重回帰分析などの高度な分析は行えない
+- ローカルで処理するにしても、クラウド上で動かすにしてもインフラは自ら管理する必要がある。
+- 地図表示を行う際はMapBoxに登録する必要がある。
+- UIが日本語にほぼ対応していない
+  
 #### 6. 他社事例
+
 #### 7. 世の中の評価・評判
+- 「地図に強い」
+- 「ライセンスが緩いのでありがたい」
+- 「ノーコードで画面を作れるのが売り」
+- 「権限管理が細かくできる」
 #### 8. 用途についての所感
+- Docker周りの設定が多くセットアップが面倒くさいが、一度動くところまで行くとすんなり使える
+- 最後はSQLを振り回す必要がある
 #### 9. 備考
+- OSSの中でもApache財団が管理しているためいきなりライセンスが商用に使いにくい形に変更される心配が薄い。
 #### 10. 参考サイト
+- [OSSのBIツール比較(Metabase,Superset,Kibana)](https://qiita.com/souchan-t/items/c75f14f6b9b818bf53c0)
+- [Apache Sperset公式ページ](https://superset.apache.org/)
+- [Apache Supersetの導入手順](https://sites.google.com/mb.lecip.co.jp/business-dx/dx-sol/technical-information-disclosure/AIandDX-news/apache-superset%E3%81%AE%E5%B0%8E%E5%85%A5%E6%89%8B%E9%A0%86)
 
 ### 雛形
 
