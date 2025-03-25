@@ -114,11 +114,13 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
  引用元:[[初心者向け] Kinesis Data Streams に Lambda でデータを流す様子を理解するために図を書いた](https://dev.classmethod.jp/articles/i-drew-a-diagram-to-understand-how-data-flows-to-kinesis-data-streams-with-lambda/)
 #### 3. 価格
 - 処理時間に対する従量課金
+  - データを入れていなくて処理は発生している。
 - オンデマンドとプロビジョニングの選択が可能
 #### 4. 技術的に優れていること
 - AWSサービスとの連携:AWSサービスのうちの一つなので、
 - 低遅延のデータ配信(70ms)
 - 収集したデータを多重かつ、最大365日保存可能
+- スケーラビリティがとても高い。
 #### 5. 制約事項
 - AWS外のシステムに配信するにはHTTPエンドポイントを用いる必要がある
 - 何もしていなくてもお金がかかる
@@ -131,6 +133,7 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 - ユーザーの操作ログ取得のような大量のデータを扱うのが得意分野か
 - しばらく配信するデータを残しているというのは障害調査などの際に便利かも
 #### 9. 備考
+- Firehoseとの比較は欠かせないか
 #### 10. 参考サイト
 - [Amazon Kinesis Data Streams](https://aws.amazon.com/jp/kinesis/data-streams/?nc=sn&loc=0)
 - [Amazon Kinesis Data Streams デベロッパーガイド 用語と概念](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/key-concepts.html)
