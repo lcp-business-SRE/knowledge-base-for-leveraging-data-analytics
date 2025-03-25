@@ -97,17 +97,21 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 ### Amazon Kinesis Data Streams
 
 #### 1. できることの概要
-- 取得したデータを逐次的に次の処理部分に受け渡すデータ配信システム
+- ストリーミングデータを取得し受け渡すデータ配信システム
+  - [ストリーミングデータとは](https://aws.amazon.com/jp/what-is/streaming-data/)
 - リアルタイムデータ分析のためのデータ収集
 - イベント駆動型アプリケーションの強化
 ![概念図](./assets/architecture.png)
 引用元:[Amazon Kinesis Data Streams デベロッパーガイド 用語と概念](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/key-concepts.html)
 #### 2. サービスの特徴
 - マネージドサービス
-- 配信データの多重管理
-- 低遅延
+- データの順番が保証される
 - 暗号化などのセキュリティ要件に対応可能
 - 複数のData Streamを組み合わせてパイプライン構築も可能
+- パーティションキーをデータに持たせる必要があるが、それを使って各シャードにデータを振り分けることが可能
+  - 各シャードごとにきちんと振り分けないと、一つのシャードに負荷が集中する場合もある。
+  ![パーティション模式図](./assets/emiki_Kinesis_Lambda_illustration_15.webp)
+ 引用元:[[初心者向け] Kinesis Data Streams に Lambda でデータを流す様子を理解するために図を書いた](https://dev.classmethod.jp/articles/i-drew-a-diagram-to-understand-how-data-flows-to-kinesis-data-streams-with-lambda/)
 #### 3. 価格
 - 処理時間に対する従量課金
 - オンデマンドとプロビジョニングの選択が可能
@@ -115,20 +119,23 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 - AWSサービスとの連携:AWSサービスのうちの一つなので、
 - 低遅延のデータ配信(70ms)
 - 収集したデータを多重かつ、最大365日保存可能
-- 
 #### 5. 制約事項
 - AWS外のシステムに配信するにはHTTPエンドポイントを用いる必要がある
+- 何もしていなくてもお金がかかる
 #### 6. 他社事例
-- 
+- ユーザーログ監視と可視化のための基盤
+  - [参考リンク](https://aws.amazon.com/jp/solutions/case-studies/thomson-reuters/) 
 #### 7. 世の中の評価・評判
-- 
+- 大規模かつ高速なデータ処理を要求する物はDataStreamで、そんなに高速である必要がなかったり、データの順番などにこだわりがなければFirehoseを使う人が多いようだった
 #### 8. 用途についての所感
 - ユーザーの操作ログ取得のような大量のデータを扱うのが得意分野か
 - しばらく配信するデータを残しているというのは障害調査などの際に便利かも
 #### 9. 備考
 #### 10. 参考サイト
-
-
+- [Amazon Kinesis Data Streams](https://aws.amazon.com/jp/kinesis/data-streams/?nc=sn&loc=0)
+- [Amazon Kinesis Data Streams デベロッパーガイド 用語と概念](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/key-concepts.html)
+- [[初心者向け] Kinesis Data Streams に Lambda でデータを流す様子を理解するために図を書いた](https://dev.classmethod.jp/articles/i-drew-a-diagram-to-understand-how-data-flows-to-kinesis-data-streams-with-lambda/)
+-  [ストリーミングデータとは](https://aws.amazon.com/jp/what-is/streaming-data/)
 ---
 
 ## データ保存
