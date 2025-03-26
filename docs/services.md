@@ -242,6 +242,7 @@ OSSにより頒布されているBIツールであり、Apacheによるプロジ
 
 - データの可視化
   - グラフ化
+  ![グラフ編集画面](./assets/Apache-SupersetScreenshot.png)
   - ヒートマップ
   - 地図上に散布図として表示
   - その他色々
@@ -254,6 +255,12 @@ OSSにより頒布されているBIツールであり、Apacheによるプロジ
 - Apache License2.0のもとで頒布されているため、利用に費用がかからずライセンスリスクも少ない。
 - Pythonで実装されているため、修正できる人が多い
 - Dockerコンテナ内で動作する。
+- 構成例
+![構成図](./assets/Superset概念図.png)
+- TODO:セキュリティ周りの調査
+  - 権限周りの詳細な調査
+  - コネクタ周りのチェック
+  - SQL文による操作ができるのでそこらへんも
 
 #### 3. 価格
 
@@ -278,7 +285,7 @@ OSSにより頒布されているBIツールであり、Apacheによるプロジ
 - 外部のマップサービスとの連携で、位置情報を表現するデータ可視化に優れる。
 - ダッシュボードにiframeを配置可能
 - 監査ログの取得・可視化が可能
-  
+
 #### 5. 制約事項
 
 - 企業のサービスではないため、サポート体制は弱い
@@ -287,7 +294,8 @@ OSSにより頒布されているBIツールであり、Apacheによるプロジ
 - 地図表示を行う際はMapBoxに登録する必要がある。
 - UIが日本語にほぼ対応していない
 - 複数テーブルをまたがった分析はできない
-  - 複数のテーブルを統合したものを作成すればよい。[公式FAQ]
+  - 複数のテーブルを統合したものを作成すればよい。[公式FAQ](https://superset.apache.org/docs/faq#can-i-join--query-multiple-tables-at-one-time)
+- 速度はデータウェアハウスの速度に支配される
   
 #### 6. 他社事例
 
@@ -308,13 +316,15 @@ OSSにより頒布されているBIツールであり、Apacheによるプロジ
 
 - OSSの中でもApache財団が管理している。
   - いきなりライセンスが商用に使いにくい形に変更される心配が薄い。
+- テレメトリデータを収集しているので、オプトアウト設定が必要。
+- 削除された物を復帰する方法はないので、DBのバックアップを定期的にとることが勧められている。
 
 #### 10. 参考サイト
 
 - [OSSのBIツール比較(Metabase,Superset,Kibana)](https://qiita.com/souchan-t/items/c75f14f6b9b818bf53c0)
 - [Apache Sperset公式ページ](https://superset.apache.org/)
 - [Apache Supersetの導入手順](https://sites.google.com/mb.lecip.co.jp/business-dx/dx-sol/technical-information-disclosure/AIandDX-news/apache-superset%E3%81%AE%E5%B0%8E%E5%85%A5%E6%89%8B%E9%A0%86)
-- [[データ分析基盤構築記 ~BI・ダッシュボード編~] 『Apache Superset』で社内データを可視化してみた](https://note.com/prevent_ds/n/nd30c7cc816f6)
+- [[データ分析基盤構築記 \~BI・ダッシュボード編\~] 『Apache Superset』で社内データを可視化してみた](https://note.com/prevent_ds/n/nd30c7cc816f6)
 
 ### 雛形
 
