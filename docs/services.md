@@ -62,7 +62,7 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
   - [ストリーミングデータとは](https://aws.amazon.com/jp/what-is/streaming-data/)
 - リアルタイムデータ分析のためのデータ収集
 - イベント駆動型アプリケーションの強化
-![概念図](./assets/architecture.png)
+![概念図](./assets/dataStreams-architecture.png)
 引用元:[Amazon Kinesis Data Streams デベロッパーガイド 用語と概念](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/key-concepts.html)
 
 #### 2. サービスの特徴
@@ -70,10 +70,31 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 - マネージドサービス
 - データの順番が保証される
 - 暗号化などのセキュリティ要件に対応可能
-- 複数のData Streamを組み合わせてパイプライン構築も可能
+- 複数のData Streamsを組み合わせてパイプライン構築も可能
 - パーティションキーをデータに持たせる必要があるが、それを使って各シャードにデータを振り分けることが可能
   - 各シャードごとにきちんと振り分けないと、一つのシャードに負荷が集中する場合もある。
   ![パーティション模式図](./assets/emiki_Kinesis_Lambda_illustration_15.webp)
+- データIN/OUT
+  - データソース
+    - データソースをプロデューサーと呼ぶ
+      - データプロデューサーは、Amazon Kinesis データストリームに[Amazon Kinesis Data Streams API](https://docs.aws.amazon.com/ja_jp/kinesis/latest/APIReference/API_Operations.html)、[Amazon Kinesis Producer Library (KPL)](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/developing-producers-with-kpl.html)、または [Amazon Kinesis Agent](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/writing-with-agents.html) を介してデータを格納できる。
+      - サードパーティーのサービスとつなぐ場合はそれぞれのコネクタも利用可能
+        - [参考リンク](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/using-other-services-third-party.html)
+  - アウトプット
+    - データの送信先をコンシューマーと呼ぶ
+    - コンシューマーになれるもの
+      - 統合がサポートされているもの
+        - Amazon Kinesis Data Firehose
+        - Amazon Managed Service for Apache Flink
+        - AWS Lambda
+      - [Amazon Kinesis クライアントライブラリ（KCL）](https://github.com/awslabs/amazon-kinesis-client)を用いてアプリケーションを作成
+      - コネクタライブラリを利用
+        - Amazon DynamoDB
+        - Amazon Redshift
+        - Amazon S3
+        - Amazon Elasticsearch Service
+  - このほかにもCLIを用いて直接レコードを送り、取得することもできる。[参考](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/fundamental-stream.html)
+
  引用元:[[初心者向け] Kinesis Data Streams に Lambda でデータを流す様子を理解するために図を書いた](https://dev.classmethod.jp/articles/i-drew-a-diagram-to-understand-how-data-flows-to-kinesis-data-streams-with-lambda/)
 
 #### 3. 価格
@@ -81,6 +102,12 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 - 処理時間に対する従量課金
   - データを入れていなくて処理は発生している。
 - オンデマンドとプロビジョニングの選択が可能
+- オンデマンド料金
+  - ストリーム当たり $0.052/Hour
+  - 取り込まれたデータ $0.104/GB
+- プロビジョン料金
+  - シャード時間 (取得 1 MB/秒、送信 2 MB/秒) $0.0195/Hour
+  - PUT ペイロードユニット $0.0215/1000000ユニット
 
 #### 4. 技術的に優れていること
 
@@ -91,7 +118,7 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 
 #### 5. 制約事項
 
-- AWS外のシステムに配信するにはHTTPエンドポイントを用いる必要がある
+- コネクタがないサービスに情報を配信するにはHTTP経由でAPIを叩く必要がある
 - 何もしていなくてもお金がかかる
 
 #### 6. 他社事例
@@ -101,7 +128,7 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 
 #### 7. 世の中の評価・評判
 
-- 大規模かつ高速なデータ処理を要求する物はDataStreamで、そんなに高速である必要がなかったり、データの順番などにこだわりがなければFirehoseを使う人が多いようだった
+- 大規模かつ高速なデータ処理を要求する物はDataStreamsで、そんなに高速である必要がなかったり、データの順番などにこだわりがなければFirehoseを使う人が多いようだった
 
 #### 8. 用途についての所感
 
@@ -110,7 +137,14 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 
 #### 9. 備考
 
-- Firehoseとの比較は欠かせないか
+- Firehoseとの比較よくされている
+  
+|     |   Amazon Kinesis Data Streams  |  Amazon Data Firehose   |
+| --- | --- | --- |
+|   スループットを意識した設計   |  必要 |  不要   |
+|   レイテンシ  |   ミリ秒単位  |   秒単位  |
+|   配信先  |  処理を行うサービス   |  ストレージにも配信可能   |
+|   用途  |  リアルタイム分析   |  遅延が許容される分析   |
 
 #### 10. 参考サイト
 
@@ -118,6 +152,7 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 - [Amazon Kinesis Data Streams デベロッパーガイド 用語と概念](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/key-concepts.html)
 - [[初心者向け] Kinesis Data Streams に Lambda でデータを流す様子を理解するために図を書いた](https://dev.classmethod.jp/articles/i-drew-a-diagram-to-understand-how-data-flows-to-kinesis-data-streams-with-lambda/)
 - [ストリーミングデータとは](https://aws.amazon.com/jp/what-is/streaming-data/)
+- [Kinesis Data Streams と Kinesis Data Firehose の違いを初心者なりにまとめてみた](https://qiita.com/phenyo_dikgomo/items/22c503a938bec1c9ea36)
 
 ---
 
