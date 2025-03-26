@@ -71,23 +71,40 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 - 現在使用しているシステムのデプロイに追加できる
 - 動的パーティショニングができる
   - これによりデータの中身を参照してディレクトリに振り分けるなどが可能
-- データの送信先
-  - Amazon Simple Storage Service (Amazon S3)
-  - Amazon Redshift
-  - Amazon OpenSearch Serverless
-  - Amazon OpenSearch Service
-  - Splunk
-  - Datadog
-  - Dynatrace
-  - LogicMonitor
-  - MongoDB
-  - New Relic
-  - Coralogix
-  - Elastic
+- データI/O
+  - データソース
+    - Direct PUT:API経由で直接Firehoseにデータを書き込む
+      - AWS Lambda
+      - AWS SDK
+      - AWS CloudWatch
+      - その他いろいろ
+    - Amazon Kinesis Data Streams:既存のDataStreamsと接続するためのコネクタ
+    - Amazon MSK:Amazon MSKと連携する場合にはそれ用のコネクタを使う
+  - データの送信先
+    - Amazon Simple Storage Service (Amazon S3)
+    - Amazon Redshift
+    - Amazon OpenSearch Serverless
+    - Amazon OpenSearch Service
+    - Splunk
+    - Datadog
+    - Dynatrace
+    - LogicMonitor
+    - MongoDB
+    - New Relic
+    - Coralogix
+    - Elastic
+    - HTTPエンドポイント
+  - [デベロッパーガイドの該当ページ](https://docs.aws.amazon.com/ja_jp/firehose/latest/dev/create-name.html)
 
 #### 3. 価格
 
 - データ処理量比例
+  - DirectPutAPI経由で取得した情報をそのままS3に置く場合：$0.036/GB
+    - 動的パーティショニングをする場合
+      - データ量課金:$0.032/GB
+      - データ数課金:$0.008/1000レコード
+    - サイズが5kB未満のレコードは5kBで換算
+  - その他取得元、取得先によっても料金が変動する
 
 #### 4. 技術的に優れていること
 
@@ -111,7 +128,7 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 #### 7. 世の中の評価・評判
 
 - AWS上でそこそこの速度でデータ配信を行う際の第一候補
-- AWS上のサービスではKinesis Data Streamとの比較になることが多い
+- AWS上のサービスではKinesis Data Streamsとの比較になることが多い
   - 単純なデータ収集用ツールとしてはこちらが向いているとの評価
 
 #### 8. 用途についての所感
