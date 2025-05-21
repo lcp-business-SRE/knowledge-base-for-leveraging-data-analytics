@@ -122,6 +122,7 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 - [Airbyte Docs](https://docs.airbyte.com/platform/)
 - [Airbyteを使って、HubspotのデータをBigQueryに流し込んでみた](https://note.com/h_yoshida/n/n97acbc73e33f)
 - [GKE上にAirbyteを構築しSaaSデータ連携をリプレイスした話](https://techblog.zozo.com/entry/airbyte-on-gke)
+- [Airbyte OSS版とCloud版の比較（カスタムコネクタ）](https://qiita.com/tharada_ml/items/0465ee8a3b65a78c44c6)
 
 ---
 
