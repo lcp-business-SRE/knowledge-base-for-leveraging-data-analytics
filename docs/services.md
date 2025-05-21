@@ -61,7 +61,7 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 #### 1. できることの概要
 
 - データ収集
-  - 公式がコネクタビルダーというものを入力元毎に100種類以上提供している。
+  - 公式がコネクタビルダーというものを入力元毎に100種類以上提供している。[一覧](https://airbyte.com/connectors?connector-categories)
     - GUIで設定が可能
     - 必要事項を入力していけばコネクタが出来上がる。
       - 設定が容易
@@ -93,14 +93,14 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 #### 5. 制約事項
 
 - サーバーを立てる必要がある
-  - ECSでは使えないという情報あり
+  - KubernetesなのでEKSやGKE上にも構築できる
 - 使いたいデータソースに向けたコネクタがない場合は、自作する必要がある
 - 日本語の資料が少ない
   - 英語の公式ドキュメント自体はきちんとしてる
 
 #### 6. 他社事例
 
-- 調査中
+- [ZOZOが自社データ基盤と、外部APIとの連携のために使用](https://techblog.zozo.com/entry/airbyte-on-gke)
 
 #### 7. 世の中の評価・評判
 
@@ -120,6 +120,7 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 
 - [Airbyte Docs](https://docs.airbyte.com/platform/)
 - [Airbyteを使って、HubspotのデータをBigQueryに流し込んでみた](https://note.com/h_yoshida/n/n97acbc73e33f)
+- [GKE上にAirbyteを構築しSaaSデータ連携をリプレイスした話](https://techblog.zozo.com/entry/airbyte-on-gke)
 
 ---
 
