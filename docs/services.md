@@ -112,7 +112,8 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 #### 6. 他社事例
 
 - [ZOZOが自社データ基盤と、外部APIとの連携のために使用](https://techblog.zozo.com/entry/airbyte-on-gke)
-- ![構成図](../docs/assets/Airbyte-Zozo-構成図.jpg)
+  - ZOZOのシステムの構成図
+  - ![構成図](../docs/assets/Airbyte-Zozo-構成図.jpg)
 
 #### 7. 世の中の評価・評判
 
