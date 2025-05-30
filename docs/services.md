@@ -163,6 +163,15 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 <!-- markdownlint-disable MD033 -->
 - メタデータのマネージドテーブル化は **<span style="color:rgb(225, 0, 0)">2025/05/26現在日本リージョンでは未提供</span>**。
 <!-- markdownlint-disable MD033 -->
+- DynamoDBのデータをS3に定期的にアップデートする方法 [(参考リンク)](https://dev.classmethod.jp/articles/dynamodb-data-export-s3/)
+  - DynamoDBでポイントインタイムリカバリ機能を有効にする
+  - exportTableToPointInTimeというAPIを用いてLambda等でS3への書き出しを実行するシステムを作る。
+    - このタイミングで送信先S3Bucketを指定できるので、ここでAthenaでの分析用のprefixをつけるようにする。[(参考リンク)](https://tech.layerx.co.jp/entry/dynamodb-incremental-export)
+  - IAMを設定する
+    - Dynamoに対するexportTableToPointInTimeの権限と、S3に対するPutObject
+  - スケジュールを設定して実行
+- RDSのデータをS3に定期的に置く方法
+  - [スナップショットをエクスポートできる](https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html)
 
 #### 10. 参考サイト
 
