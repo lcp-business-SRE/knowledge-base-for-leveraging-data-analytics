@@ -1,5 +1,5 @@
 ---
-title: 教材サイトへようこそ
+title: SREチーム データ分析ノウハウサイト
 layout: single
 sidebar:
   nav: docs # _data/navigation.yml で定義したナビゲーションID
