@@ -124,8 +124,7 @@ Jekyllサイトのコンテンツやデザインを変更するたびに、そ�
 サイトのルートディレクトリにいることを確認し、以下のコマンドを実行します。
 
 ``` bash
-bundle exec jekyll serve
-```
+bundle exec jekyll serve --baseurl=""```
 
 このコマンドはJekyllサイトをビルドし、デフォルトで`http://localhost:4000`で利用可能なローカルWebサーバーを起動します 。ブラウザでこのURLにアクセスすると、現在開発中のサイトが表示されます。
 
