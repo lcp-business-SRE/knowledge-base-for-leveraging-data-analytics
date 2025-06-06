@@ -1,0 +1,58 @@
+// _sass/custom/_colors.scss
+
+/* Minimal Mistakes のテーマカラー変数を上書き */
+
+// --- カラーパレット定義 ---
+$primary-dark-blue: #0A2647; // メインの深い青
+$secondary-blue: #144272;   // 少し明るい青
+$tertiary-blue: #205295;    // さらに明るい青
+$accent-blue: #2C74B3;      // アクセント用
+$text-dark: #333333;        // 濃いテキスト色
+$text-light: #F0F0F0;       // 明るいテキスト色（ヘッダーなど）
+$background-light: #F8F9FA; // 薄い背景色
+$background-white: #FFFFFF; // 白い背景色
+$border-color: #E0E0E0;     // ボーダー色
+$sidebar-bg: #E9ECEF;       // サイドバーの背景色
+$sidebar-link: #0A2647;     // サイドバーのリンク色
+$sidebar-link-hover: #144272; // サイドバーのリンクホバー色
+
+// --- Minimal Mistakes の変数にマッピング ---
+$body-background-color: $background-light; // 全体の背景色
+$text-color: $text-dark;
+$link-color: $tertiary-blue; // リンク色
+$link-hover-color: $accent-blue; // リンクホバー色
+
+// ヘッダー/フッターなどメインの背景色
+$masthead-link-color: $text-light;
+$masthead-link-color-hover: darken($text-light, 10%);
+$nav-link-color: $text-light;
+$nav-link-color-hover: darken($text-light, 10%);
+
+// ナビゲーションの背景色
+$masthead-background: $primary-dark-blue;
+$footer-background-color: $primary-dark-blue;
+
+// サイドバー
+$sidebar-color: $sidebar-link; // Sidebar heading text color
+$sidebar-background-color: $sidebar-bg;
+$sidebar-link-color: $sidebar-link;
+$sidebar-link-color-hover: $sidebar-link-hover;
+$sidebar-nav-color: $sidebar-link; // Sidebar navigation link color
+$sidebar-nav-color-hover: $sidebar-link-hover;
+$sidebar-border-color: $border-color;
+
+// 見出し色
+$h-color: $primary-dark-blue;
+
+// コードブロックの背景色
+$code-block-background-light: lighten($primary-dark-blue, 60%); // 例
+$code-block-background-dark: $primary-dark-blue;
+
+// その他の要素の色も調整
+$border-color: $border-color;
+$form-border-color: $border-color;
+$button-background-color: $accent-blue;
+$button-border-color: $accent-blue;
+$button-color: $text-light;
+$table-border-color: $border-color;
+$blockquote-border-color: $tertiary-blue;
