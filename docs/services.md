@@ -22,7 +22,9 @@
   - [技術比較表（サマリ）](#技術比較表サマリ)
   - [整理のしかた](#整理のしかた)
   - [データ収集](#データ収集)
+    - [Amazon Kinesis Data Streams](#amazon-kinesis-data-streams)
   - [データ保存](#データ保存)
+    - [Amazon S3](#amazon-s3)
   - [データ加工](#データ加工)
     - [dbt（Data Build Tool）](#dbtdata-build-tool)
   - [データ分析・活用](#データ分析活用)
@@ -53,11 +55,229 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 
 データ分析のためには、業務システムや顧客データなどから必要なデータを集めます。収集したデータはそのままでは使えないことが多いため、適切に保存し、用途に応じて加工します。
 
+### Amazon Kinesis Data Streams
+
+#### 1. できることの概要
+
+- ストリーミングデータを取得し受け渡すデータ配信システム
+  - [ストリーミングデータとは](https://aws.amazon.com/jp/what-is/streaming-data/)
+- リアルタイムデータ分析のためのデータ収集
+- イベント駆動型アプリケーションの強化
+![概念図](./assets/dataStreams-architecture.png)
+引用元:[Amazon Kinesis Data Streams デベロッパーガイド 用語と概念](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/key-concepts.html)
+
+#### 2. サービスの特徴
+
+- マネージドサービス
+- データの順番が保証される
+- 暗号化などのセキュリティ要件に対応可能
+- 複数のData Streamsを組み合わせてパイプライン構築も可能
+- パーティションキーをデータに持たせる必要があるが、それを使って各シャードにデータを振り分けることが可能
+  - 各シャードごとにきちんと振り分けないと、一つのシャードに負荷が集中する場合もある。
+  ![パーティション模式図](./assets/emiki_Kinesis_Lambda_illustration_15.webp)
+- データIN/OUT
+  - データソース
+    - データソースをプロデューサーと呼ぶ
+      - データプロデューサーは、Amazon Kinesis データストリームに[Amazon Kinesis Data Streams API](https://docs.aws.amazon.com/ja_jp/kinesis/latest/APIReference/API_Operations.html)、[Amazon Kinesis Producer Library (KPL)](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/developing-producers-with-kpl.html)、または [Amazon Kinesis Agent](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/writing-with-agents.html) を介してデータを格納できる。
+      - サードパーティーのサービスとつなぐ場合はそれぞれのコネクタも利用可能
+        - [参考リンク](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/using-other-services-third-party.html)
+  - アウトプット
+    - データの送信先をコンシューマーと呼ぶ
+    - コンシューマーになれるもの
+      - 統合がサポートされているもの
+        - Amazon Kinesis Data Firehose
+        - Amazon Managed Service for Apache Flink
+        - AWS Lambda
+      - [Amazon Kinesis クライアントライブラリ（KCL）](https://github.com/awslabs/amazon-kinesis-client)を用いてアプリケーションを作成
+      - コネクタライブラリを利用
+        - Amazon DynamoDB
+        - Amazon Redshift
+        - Amazon S3
+        - Amazon Elasticsearch Service
+  - このほかにもCLIを用いて直接レコードを送り、取得することもできる。[参考](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/fundamental-stream.html)
+
+ 引用元:[[初心者向け] Kinesis Data Streams に Lambda でデータを流す様子を理解するために図を書いた](https://dev.classmethod.jp/articles/i-drew-a-diagram-to-understand-how-data-flows-to-kinesis-data-streams-with-lambda/)
+
+#### 3. 価格
+
+- 処理時間に対する従量課金
+  - データを入れていなくて処理は発生している。
+- オンデマンドとプロビジョニングの選択が可能
+- オンデマンド料金
+  - ストリーム当たり $0.052/Hour
+  - 取り込まれたデータ $0.104/GB
+- プロビジョン料金
+  - シャード時間 (取得 1 MB/秒、送信 2 MB/秒) $0.0195/Hour
+  - PUT ペイロードユニット $0.0215/1000000ユニット
+
+#### 4. 技術的に優れていること
+
+- AWSサービスとの連携:AWSサービスのうちの一つなので、
+- 低遅延のデータ配信(70ms)
+- 収集したデータを多重かつ、最大365日保存可能
+- スケーラビリティがとても高い。
+
+#### 5. 制約事項
+
+- コネクタがないサービスに情報を配信するにはHTTP経由でAPIを叩く必要がある
+- 何もしていなくてもお金がかかる
+
+#### 6. 他社事例
+
+- ユーザーログ監視と可視化のための基盤
+  - [参考リンク](https://aws.amazon.com/jp/solutions/case-studies/thomson-reuters/)
+
+#### 7. 世の中の評価・評判
+
+- 大規模かつ高速なデータ処理を要求する物はDataStreamsで、そんなに高速である必要がなかったり、データの順番などにこだわりがなければFirehoseを使う人が多いようだった
+
+#### 8. 用途についての所感
+
+- ユーザーの操作ログ取得のような大量のデータを扱うのが得意分野か
+- しばらく配信するデータを残しているというのは障害調査などの際に便利かも
+
+#### 9. 備考
+
+- Firehoseとの比較よくされている
+  
+|     |   Amazon Kinesis Data Streams  |  Amazon Data Firehose   |
+| --- | --- | --- |
+|   スループットを意識した設計   |  必要 |  不要   |
+|   レイテンシ  |   ミリ秒単位  |   秒単位  |
+|   配信先  |  処理を行うサービス   |  ストレージにも配信可能   |
+|   用途  |  リアルタイム分析   |  遅延が許容される分析   |
+
+#### 10. 参考サイト
+
+- [Amazon Kinesis Data Streams](https://aws.amazon.com/jp/kinesis/data-streams/?nc=sn&loc=0)
+- [Amazon Kinesis Data Streams デベロッパーガイド 用語と概念](https://docs.aws.amazon.com/ja_jp/streams/latest/dev/key-concepts.html)
+- [[初心者向け] Kinesis Data Streams に Lambda でデータを流す様子を理解するために図を書いた](https://dev.classmethod.jp/articles/i-drew-a-diagram-to-understand-how-data-flows-to-kinesis-data-streams-with-lambda/)
+- [ストリーミングデータとは](https://aws.amazon.com/jp/what-is/streaming-data/)
+- [Kinesis Data Streams と Kinesis Data Firehose の違いを初心者なりにまとめてみた](https://qiita.com/phenyo_dikgomo/items/22c503a938bec1c9ea36)
+
 ---
 
 ## データ保存
 
 データ分析に必要なデータは、適切に保存する必要があります。これを「データレイク」と呼びます。データ元によっては一時的なログしか発生しない場合もあり、取得を逃すと再取得が困難です。そのため、必要なデータを収集し、保存しておくことが重要です。
+
+### Amazon S3
+
+#### 1. できることの概要
+
+- データの保存
+- 外部からのアクセス
+- 簡易的なクエリ
+  - Glue等のほかのサービスと組み合わせるとSQLクエリも可能
+  - S3 Tablesという新機能を使うと、Athena経由で直接SQLクエリができるようになる。
+- オブジェクトの保存などの特定イベントをトリガーとし、自動的な処理が可能
+- [メタデータのマネージドテーブル化](https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/UsingMetadata.html)
+  - これにより、データの捜索やガバナンスが容易になる
+
+#### 2. サービスの特徴
+
+- AWSの基本ストレージのため、資料が豊富
+- フルマネージド
+- スケーラビリティが極めて高い
+  - 実用上は無制限に増やせる。
+- 保存データの利用法に応じたプランが存在する
+  - S3 標準
+  - S3 標準 - 低頻度アクセス
+  - S3 Glacier Instant Retrieval
+  - S3 Glacier Deep Archive (標準/大容量)
+  - S3 One Zone - 低頻度アクセス
+  - Amazon S3 Glacier Flexible Retrieval
+  - S3 Intelligent-Tiering
+- ウェブサイトのホスティングも可能
+
+#### 3. 価格
+
+|  金額はすべて米ドル   |  標準   | 標準 - 低頻度アクセス  |  S3 Glacier Instant Retrieval   |  S3 Glacier Deep Archive    | S3 One Zone - 低頻度アクセス | Amazon S3 Glacier Flexible Retrieval |S3 Intelligent-Tiering|
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|  概要   |  標準的なデータ向け   |   アクセス頻度が低いデータ向け  |   アクセス頻度がさらに低いデータ向け  |  年数回未満レベルのアクセスで、急を要しないデータ向け   |再作成可能なデータ向け | 年数回レベルのアクセスするデータで、緊急の取り出しが必要かもしれないもの  | アクセス頻度等でストレージを振り分ける |
+|  データ容量に対する価格(/GB)   |  0.025   |  0.0138   |   0.005  |   0.002  | 0.011 |0.0045  |0.025～0.005(高頻度～アーカイブ)|
+|  データ取り出しに対する価格(/1000リクエスト)   |  0   |   0  |  0   |  0.1142/0.025  (標準/大容量) | 0| 11.00/0.0571/0 (迅速/標準/大容量)|原則 0 </br> アーカイブアクセスかつ迅速　11.00|
+|  データ取り出しに対する価格(/GB)   |  0   |   0.01  |  0.03   |  0.022/0.005  (標準/大容量) | 0.01 | 0.033/0.011/0 (迅速/標準/大容量)|原則 0 </br> アーカイブアクセスかつ迅速　0.033|
+|  PUT、COPY、POST、LIST リクエスト(/1000リクエスト)   |   0.0047  |   0.01  |  0.02   |   0.065  | 0.01| 0.03426 |0.0047|
+|  GET、SELECT、他のすべてのリクエスト (/1000リクエスト)   |  0.00037 |   0.001  |  0.01   |  0.00037 | 0.001| 0.00037 |0.00037|
+|  外部へのデータ送信(/GB)   |   0.114  |  0.114   |   0.114  |  0.114   | 0.114 |  0.114  |0.114|
+|  データ取り出しにかかる時間スケール   |   ms  |   ms  |   ms  |    12時間以内 | ms | 1分～12時間(迅速～大容量) |振り分けられたストレージによる|
+|ライフサイクルによる移行の受け入れ|-|0.01|0.02|0.065|0.01|0.03426|0.01|
+|  備考   |     |     |     |  決済データなどの法的に長期保存を要求されるデータ向け   | AZ1つにしか保存されないため、安価。復帰可能なものや消えてもいいもの向け| 基本はアクセス頻度が低く急がないが、例外的に急いで取り出すこともあるデータ向け。</br>素早く取り出そうとするほど料金が跳ね上がる。 |モニタリングおよびオートメーションにも課金。1000件当たり0.0025 USD</br>128KB未満のデータは振り分け対象外</br>頻度最低のストレージに向けて優先リクエストを行うと課金。|
+
+#### 4. 技術的に優れていること
+
+- 高耐久性
+  - One Zoneは99.99%
+  - それ以外は99.999999999%
+- ライフサイクルが設定可能。これにより、決められた期間を経過したファイルを削除もしくは安価なストレージに移行することができる。
+- バージョン管理が可能
+  - 使用容量はその分増える。
+- アクセス管理機能を用いてアクセスを制限できる。
+- ファイルに対する一時リンクを作成可能
+- S3 Intelligent-Tieringの場合、自動でストレージクラスを振り分けてくれる。この機能によりコスト削減が見込める。
+
+#### 5. 制約事項
+
+- 本質的にはディレクトリ構造を持たない
+  - 全ファイルはファイルパス＝名前として管理されているので、フォルダ名変更が難しい。
+- バケット名は同一パーティション内(cnとus-gov以外全てを指す)でユニークである必要がある。
+- Glacierは大量の軽量オブジェクトを保存したり、短期間で削除したりすると通常のストレージよりも高額になる罠がある。
+  - 軽量オブジェクト保存時の問題
+    - ファイルごとに40KB程度のメタデータが必ずつくので、小さなファイルを大量に保存するとファイルサイズの増加による料金増加が単価低下を上回る。[1](https://www.hands-lab.com/tech/t13536/)
+    - ライフサイクルポリシー等でstandardから移行させる場合、GlacierへのPUTリクエストの料金が高額になる場合がある。ファイルサイズと保存期間によっては転送料金で単価低下分を超える費用がかかる。[2](https://qiita.com/Ichi0124/items/19a05ea599bd13372586)
+  - 短期間使用
+    - 最低保存期限があり、それに満たない期間で削除した場合90日(Deep Archiveなら180日)分の保存代金との差額が一気に請求される(1日目に消すと、3か月分の請求が一月にまとまってされる)。[3](https://qiita.com/daktu32/items/2dbab869dca6a3603e5d)
+- SQLによるクエリをする際に制限がある。
+  - 他のサービスを連携する必要がある。
+  - 速度が出ない。
+    - S3 Tablesを使うと高速化可能。
+    - 特定の形式のS3 Tablesの場合、[Iceberg REST API](https://github.com/apache/iceberg/blob/main/open-api/rest-catalog-open-api.yaml)形式で直接クエリも可能。しかし、複数テーブルを触るユースケースではAWS Glue Iceberg REST エンドポイントを使用するべきとされている。
+
+#### 6. 他社事例
+
+- [データレイクを構築](https://aws.amazon.com/solutions/case-studies/salesforce-amazons3-intelligent-tiering-case-study/?did=cr_card&trk=cr_card)
+- [データをアーカイブ](https://aws.amazon.com/jp/solutions/case-studies/bbc-s3-case-study/)
+
+#### 7. 世の中の評価・評判
+
+- 無制限の容量と、データ耐久性の高さが評価されてる
+- 安い
+- クラウドストレージのデファクトスタンダードとなっている。
+  - APIがS3 APIと互換を持つサービスも存在する。
+- みんな使っているので、学習コストは低い。
+
+#### 8. 用途についての所感
+
+- AWSでストレージを使うならよほどのことがあってもS3を使わない構成は考えられない
+- 料金を最適化は程々までにしたほうが良い。
+  - ファイルサイズ・アクセス頻度・保存期間などによりベストプラクティスも変わる。コスト削減のためのアプローチ方法は多いが、効果的な方法を見つけるのは難しい。とりあえずは、S3 Intelligent-Tieringの自動分類に任せるのが無難か。
+    - コスト削減ができそうな部分
+      - 定期的な運用の見直し
+      - ファイル転送回数削減
+      - ファイルの適切な圧縮
+- S3 Tablesは可能性を感じるが、普通のSQLはAthena経由でないと動かないのが悲しい
+
+#### 9. 備考
+
+- バケット名は一意になる性質による[事故](https://gigazine.net/news/20240502-how-empty-s3-bucket-aws-bill-explode/)や、その性質を悪用した[悪意あるバケット](https://qiita.com/mj69/items/87094a7fb5f492a0a97a)もあるので注意。
+<!-- markdownlint-disable MD033 -->
+- メタデータのマネージドテーブル化は **<span style="color:rgb(225, 0, 0)">2025/05/26現在日本リージョンでは未提供</span>**。
+<!-- markdownlint-disable MD033 -->
+- DynamoDBのデータをS3に定期的にアップデートする方法 [(参考リンク)](https://dev.classmethod.jp/articles/dynamodb-data-export-s3/)
+  - DynamoDBでポイントインタイムリカバリ機能を有効にする
+  - exportTableToPointInTimeというAPIを用いてLambda等でS3への書き出しを実行するシステムを作る。
+    - このタイミングで送信先S3Bucketを指定できるので、ここでAthenaでの分析用のprefixをつけるようにする。[(参考リンク)](https://tech.layerx.co.jp/entry/dynamodb-incremental-export)
+  - IAMを設定する
+    - Dynamoに対するexportTableToPointInTimeの権限と、S3に対するPutObject
+  - スケジュールを設定して実行
+- RDSのデータをS3に定期的に置く方法
+  - [スナップショットをエクスポートできる](https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/UserGuide/USER_ExportSnapshot.html)
+
+#### 10. 参考サイト
+
+- [Amazon S3](https://aws.amazon.com/jp/s3/)
+- [AWS SDK JavaScript v3でS3のファイル操作 チートシート](https://tmokmss.hatenablog.com/entry/20230118/1674010626)
 
 ---
 
@@ -328,7 +548,6 @@ OSSにより頒布されているBIツールであり、Apacheによるプロジ
 
 ### 雛形
 
-<!-- markdownlint-disable MD022 -->
 #### 1. できることの概要
 #### 2. サービスの特徴
 #### 3. 価格
