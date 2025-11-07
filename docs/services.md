@@ -16,15 +16,15 @@
 
 <!-- code_chunk_output -->
 
+ AWS-Firehose
 - [データ分析を実現するための技術](#データ分析を実現するための技術)
   - [この資料の役割](#この資料の役割)
   - [目次](#目次)
   - [技術比較表（サマリ）](#技術比較表サマリ)
   - [整理のしかた](#整理のしかた)
   - [データ収集](#データ収集)
-    - [Amazon Kinesis Data Streams](#amazon-kinesis-data-streams)
+    - [Amazon Date Firehose](#amazon-date-firehose)
   - [データ保存](#データ保存)
-    - [Amazon S3](#amazon-s3)
   - [データ加工](#データ加工)
     - [dbt（Data Build Tool）](#dbtdata-build-tool)
   - [データ分析・活用](#データ分析活用)
@@ -55,6 +55,119 @@ TODO:以下で整理した内容をマトリクスで比較表としてまとめ
 
 データ分析のためには、業務システムや顧客データなどから必要なデータを集めます。収集したデータはそのままでは使えないことが多いため、適切に保存し、用途に応じて加工します。
 
+### Amazon Date Firehose
+
+[Amazon Date Firehose](https://aws.amazon.com/jp/firehose/)
+
+#### 1. できることの概要
+
+センサーなどから取得したデータを一定時間バッファリングし、一定量ごとにまとめて処理するシステム。
+
+- 多種大量のデータをデータレイクなどの保管場所へ保存。
+  - データ形式は自由
+- 保存前にフォーマット変換処理が可能
+  - 変換元はJSONのみ
+  - 変換先は[Apache Parquet](https://parquet.apache.org/) ・ [Apache ORC](https://orc.apache.org/)の二種類。両方とも列指向データ形式で、これによりクエリ速度の向上が見込める。
+  - 直接処理できないCSV等はLambdaで変換することで利用できる。
+
+#### 2. サービスの特徴
+
+- スケーラビリティが高い
+- 現在のシステムに追加する形で導入可能
+- 取得データの保存先がS3の場合は動的パーティショニングができる。[(参考)](https://docs.aws.amazon.com/ja_jp/firehose/latest/dev/dynamic-partitioning.html)
+  - これによりデータの中身を参照してディレクトリに振り分けることが可能
+- データIN/OUTについて
+  - データソース
+    - Direct PUT:API経由で直接Firehoseにデータを書き込む
+      - AWS Lambda
+      - AWS SDK
+      - AWS CloudWatch
+      - その他いろいろ
+    - Amazon Kinesis Data Streams:既存のDataStreamsと接続するためのコネクタ
+    - Amazon MSK:Amazon MSKと連携する場合にはそれ用のコネクタを使う
+    - 何かしらのロジックを入れることで、外部サービスとの連携やセンサーの生データなども受け入れ可能
+  - データの送信先
+    - Amazon Simple Storage Service (Amazon S3)
+    - Amazon Redshift
+    - Amazon OpenSearch Serverless
+    - Amazon OpenSearch Service
+    - Splunk
+    - Datadog
+    - Dynatrace
+    - LogicMonitor
+    - MongoDB
+    - New Relic
+    - Coralogix
+    - Elastic
+    - HTTPエンドポイント
+  - [デベロッパーガイドの該当ページ](https://docs.aws.amazon.com/ja_jp/firehose/latest/dev/create-name.html)
+
+#### 3. 価格
+
+- データ処理量比例
+  - DirectPutAPI経由で取得した情報をそのままS3に置く場合：$0.036/GB
+    - 動的パーティショニングをする場合
+      - データ量課金:$0.032/GB
+      - データ数課金:$0.008/1000レコード
+    - サイズが5kB未満のレコードは5kBで換算
+  - その他取得元、送信先によって料金が変動する
+
+#### 4. 技術的に優れていること
+
+- AWSのシステムとの連携がとりやすい
+- AWSのマネージドサービスであり、安定してる。
+- 運用中のシステムに追加する形でバックエンドをデプロイできる
+- 自動暗号化・自動スケーリング機能あり
+
+#### 5. 制約事項
+
+- AWSを使用する必要がある
+- データを変換する場合はS3にしか置けない
+- 詳細な変換が難しい
+  - Lambdaを経由して一つ一つロジックを書く必要がある
+- 投げ込む際に書式を整える必要性がある
+  - Bufferで投げ込んでも解釈でき、Jsonを入力しても使える。しかし、同等のデータを入れた時に入力形式により出力結果が異なる場合がある。後で分析する際に障壁となることがある。
+- 1レコード当たりのサイズ上限が1000KB。
+
+#### 6. 他社事例
+
+- [NerdWallet](https://aws.amazon.com/jp/blogs/big-data/how-nerdwallet-uses-aws-and-apache-hudi-to-build-a-serverless-real-time-analytics-platform/)
+- リアルタイム分析プラットフォームを構築する際に、差分アップデートを可能にするアーキテクチャが必要になり、Firehoseを利用するアーキテクチャになった。
+  - ![構成図](./assets/firehose-NerdWallet構成図.png)
+
+#### 7. 世の中の評価・評判
+
+- AWS上でリアルタイム性を求めないデータ配信を行う際の第一候補
+  - データを集めて、ストレージに配信するまでのディレイが秒単位で発生する。
+- AWS上のサービスではKinesis Data Streamsとの比較になることが多い
+  - センサーやログファイルからの情報を取得しストレージに記録するようなツールにはFirehoseが向いているとの評価
+  - 位置情報をもとにその場のおすすめを出したり、リアルタイムでトラフィックを調整するといった用途には向かない。
+  
+|   Data Streamsとの比較   |   Amazon Kinesis Data Streams  |  Amazon Data Firehose   |
+| --- | --- | --- |
+|   スループットを意識した設計   |  必要 |  不要   |
+|   レイテンシ  |   ミリ秒単位  |   秒単位  |
+|   配信先  |  処理を行うサービス   |  ストレージにも配信可能   |
+|   用途  |  リアルタイム表示</br>位置情報のトラッキング   |  遅延が許容される分析</br>データレイクへのパイプライン   |
+
+#### 8. 用途についての所感
+
+- QUICKRIDEの位置情報収集での使用実績もあるのでとっつきやすい
+- 一度S3に全部投げ込むといった用途に最適か
+- 最低限の下処理しかできないので、個人情報をマスクするなどの要件がある場合は工夫が必要
+- **送り込んだデータをそのままS3に置くのでデータを送る際はちゃんとすり合わせてから置く必要がある**
+
+#### 9. 備考
+
+- [2024-02-09ごろまではAmazon Kinesis Data Firehoseだった](https://aws.amazon.com/jp/about-aws/whats-new/2024/02/amazon-data-firehose-formerly-kinesis-data-firehose/#:~:text=AWS%20%E3%81%AF%20Amazon%20Kinesis%20Data,Firehose%20%E3%81%AB%E5%A4%89%E6%9B%B4%E3%81%97%E3%81%BE%E3%81%99%E3%80%82)ので新しい資料でもKinesisと一緒になっていたり、Kinesisの別サービスとの比較が主になっていたりする。
+  
+##### 10. 参考サイト
+
+- [Amazon Data Firehose](https://aws.amazon.com/jp/firehose/)
+- [Amazon Data Firehose デベロッパーガイド](https://docs.aws.amazon.com/ja_jp/firehose/latest/dev/what-is-this-service.html)
+- [Amazon Kinesis Data Firehose改めて「Amazon Data Firehose」とは](https://www.sunnycloud.jp/column/20240211-01/#:~:text=%E3%81%8A%E3%81%AF%E3%82%88%E3%81%86%E3%81%94%E3%81%96%E3%81%84%E3%81%BE%E3%81%99%E3%80%82,Firehose%E3%80%8D%E3%81%AB%E3%81%AA%E3%82%8A%E3%81%BE%E3%81%97%E3%81%9F%E3%80%82)
+- [データ分析プロジェクトに使用するクラウドサービス完全まとめガイド](https://qiita.com/qrrq/items/256a5392893e03b58ef6)
+=======
 ### Amazon Kinesis Data Streams
 
 #### 1. できることの概要
@@ -547,7 +660,7 @@ OSSにより頒布されているBIツールであり、Apacheによるプロジ
 - [[データ分析基盤構築記 \~BI・ダッシュボード編\~] 『Apache Superset』で社内データを可視化してみた](https://note.com/prevent_ds/n/nd30c7cc816f6)
 
 ### 雛形
-
+<!-- markdownlint-disable MD022 -->
 #### 1. できることの概要
 #### 2. サービスの特徴
 #### 3. 価格
